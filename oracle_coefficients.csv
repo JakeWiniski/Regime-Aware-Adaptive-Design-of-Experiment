@@ -1,0 +1,10 @@
+regime,decision_var,coefficient
+0,d_decision_0,2.0
+0,d_decision_1,2.0
+0,d_decision_2,2.0
+1,d_decision_0,2.0
+1,d_decision_1,-2.0
+1,d_decision_2,2.0
+2,d_decision_0,0.5
+2,d_decision_1,2.0
+2,d_decision_2,4.0
