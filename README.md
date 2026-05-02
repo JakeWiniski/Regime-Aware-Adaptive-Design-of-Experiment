@@ -199,5 +199,112 @@ Because the simulation has an oracle, the workflow should calculate each batch�
 
 Suggested metric:
 
-```text
 regime_regret = true_current_regime_optimum - best_candidate_in_batch
+
+This should be summarized per regime and immediately after each transition.
+
+#### 2. Add transition-recovery metrics
+
+For each regime shift, measure how quickly each method recovers.
+
+Useful metrics:
+
+- best batch in first 1 batch after transition
+- best batch in first 2 batches after transition
+- best batch in first 3 batches after transition
+- time to reach 80%, 90%, or 95% of current-regime optimum
+- cumulative regret over the first N batches after transition
+
+This would better test the central hypothesis than final cumulative best.
+
+#### 3. Benchmark against simple recency baselines
+
+To show that regime-aware modeling adds value beyond “just use recent data,” add baselines such as:
+
+- sliding-window surrogate using last N runs
+- exponentially weighted surrogate
+- last-regime-only surrogate with no changepoint detection
+- rolling validation-weighted ensemble
+
+A strong next milestone would be demonstrating that inferred regime structure outperforms generic recency weighting.
+
+#### 4. Replace hard regime assignment with soft regime confidence
+
+The current regime detector has useful but imperfect accuracy. The adaptive policy should reflect that uncertainty.
+
+Possible approaches:
+
+- soft assignment to recent regimes
+- ensemble weighting by regime probability
+- weighting models by recent out-of-sample predictive error
+- decay functions that combine recency and regime compatibility
+
+#### 5. Improve local/global transfer logic
+
+The global-residual model should probably not be used as a fixed universal strategy. Instead, it should activate only when historical regimes appear compatible with the current regime.
+
+Possible compatibility measures:
+
+- cross-regime validation error
+- feature-importance similarity
+- residual distribution similarity
+- predicted optimum similarity
+- candidate-ranking agreement between local and global models
+
+#### 6. Add regime-similarity diagnostics
+
+A useful next module would estimate whether two regimes are related enough for transfer learning.
+
+Example questions:
+
+- Do the same decision variables matter?
+- Do the signs of effects change?
+- Are nonlinear terms stable or regime-specific?
+- Does a model trained in regime A predict regime B better than chance?
+- Are candidate rankings preserved across regimes?
+
+#### 7. Test on softer and messier drift
+
+The current hard-mode simulation is useful, but real processes may drift gradually or partially.
+
+Future simulations should include:
+
+- abrupt changepoints
+- gradual drift
+- recurring regimes
+- seasonal cycles
+- changing noise levels
+- hidden variables
+- delayed response
+- mixed continuous and categorical variables
+- constraints that change over time
+
+#### 8. Prepare for real process data
+
+The practical goal is a workflow that can support real R&D settings where processes are evolving while experiments are being planned.
+
+Before applying to real data, the code should be refactored into clearer modules:
+
+- `data_generation/`
+- `regime_detection/`
+- `feature_stability/`
+- `surrogate_models/`
+- `acquisition/`
+- `evaluation/`
+- `visualization/`
+
+The prototype should also include reproducible configuration files for:
+
+- regime detector settings
+- surrogate model settings
+- acquisition weights
+- batch size
+- simulation mode
+- random seeds
+- evaluation metrics
+
+### Current conclusion
+
+The prototype supports the idea that adaptive DoE under nonstationarity should not blindly pool all historical data. In the hard-regime simulation, the strongest current policy is a simple local regime-aware surrogate, which improves mean batch quality relative to both random selection and a naive global model.
+
+The next challenge is to prove that the workflow is doing more than recency filtering. The most promising direction is a soft regime-aware ensemble that combines local adaptation, global transfer, and recent predictive validity into a single adaptive recommendation policy.
