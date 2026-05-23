@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software or workflow, please cite it using the metadata below."
+title: "Regime-Aware Adaptive Design of Experiment"
+authors:
+  - family-names: "Winiski"
+    given-names: "Jake"
+doi: 10.5281/zenodo.20358311
+url: "https://github.com/JakeWiniski/Regime-Aware-Adaptive-Design-of-Experiment"
+date-released: 2026-05-23
+version: "0.1.0"
+license: "Apache-2.0"
+abstract: >-
+  Initial proof-of-concept release of a Regime-Aware Adaptive Design of
+  Experiment workflow for non-stationary process environments. This prototype
+  explores how adaptive experimentation might improve when operational regimes
+  are detected and used to guide model selection, memory, forgetting, and
+  relearning.
+keywords:
+  - adaptive design of experiments
+  - design of experiments
+  - non-stationary optimization
+  - regime detection
+  - changepoint detection
+  - active learning
+  - process optimization
+  - surrogate modeling
+  - experimental learning
+repository-code: "https://github.com/JakeWiniski/Regime-Aware-Adaptive-Design-of-Experiment"
+type: software
