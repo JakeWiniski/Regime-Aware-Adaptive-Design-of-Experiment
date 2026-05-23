@@ -1,4 +1,5 @@
 ## Regime-Aware Adaptive Design of Experiments
+[![DOI](https://zenodo.org/badge/1226895942.svg)](https://doi.org/10.5281/zenodo.20358310)
 
 This repository contains a prototype workflow for **regime-aware adaptive design of experiments**. The central idea is that many real-world process-improvement problems are not stationary optimization problems. Processes may shift across seasons, raw-material lots, feedstock sources, equipment states, operator practices, biological states, or accumulated process history. In those settings, an adaptive DoE workflow that assumes one stable response surface may learn the wrong thing from the right data.
 
