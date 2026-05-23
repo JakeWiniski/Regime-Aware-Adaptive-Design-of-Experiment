@@ -2,7 +2,7 @@
 
 This repository contains a prototype workflow for **regime-aware adaptive design of experiments**. The central idea is that many real-world process-improvement problems are not stationary optimization problems. Processes may shift across seasons, raw-material lots, feedstock sources, equipment states, operator practices, biological states, or accumulated process history. In those settings, an adaptive DoE workflow that assumes one stable response surface may learn the wrong thing from the right data.
 
-This prototype explores the hypothesis that adaptive DoE can be improved by explicitly detecting and responding to **operational regimes**.
+This prototype explores whether adaptive DoE can be improved by explicitly detecting and responding to **operational regimes**.
 
 Rather than treating all historical data as equally relevant, the workflow asks:
 
@@ -16,9 +16,46 @@ The guiding principle is:
 
 > Stationarity should be treated as a hypothesis to be tested, not as the default assumption of adaptive experimental design.
 
+### Novelty and scope
+
+This repository presents a formative proof-of-concept for a **Regime-Aware Adaptive Design of Experiment workflow** intended for dynamic and non-stationary process environments.
+
+This work **does not claim to introduce a fundamentally new theoretical optimization framework or algorithmic class**. Related ideas already exist across fields including:
+
+- non-stationary Bayesian optimization
+- contextual optimization
+- dynamic optimization
+- adaptive control systems
+- transfer learning
+- changepoint and regime-detection methods
+
+The contribution of this repository is an **applied synthesis and reproducible prototype** showing how these ideas can be organized into a practical workflow for adaptive experimentation.
+
+The workflow is framed around a process-learning problem: how should an adaptive experimental system decide **what to remember, what to discount, and what to relearn** when the system being optimized is changing?
+
+This repository should be interpreted as:
+
+- a proof-of-concept
+- a hypothesis-generating framework
+- an open technical note
+- a foundation for future experimentation and benchmarking
+
+It should not currently be interpreted as:
+
+- a validated production framework
+- a benchmarked state-of-the-art optimization method
+- a claim of algorithmic novelty
+
+The examples provided use synthetic datasets and simplified assumptions intended to demonstrate behavior and stimulate further development.
+
 ### Core hypothesis
 
-The working hypothesis is that an adaptive DoE system can make better recommendations under drift if it uses inferred regime structure to decide **what to remember, what to discount, and what to relearn**.
+The working hypothesis is that an adaptive DoE system can make better recommendations under drift if it uses inferred regime structure to balance:
+
+- retention of useful historical information
+- discounting of outdated information
+- rapid adaptation to emerging process regimes
+- interpretability for experimental decision making
 
 In a stationary process, global learning is often desirable because every experiment contributes to the same underlying response surface. In a nonstationary process, however, older experiments may become partially misleading. A global model may average across incompatible process states, while a purely local model may adapt quickly but lose transferable structure.
 
@@ -40,7 +77,7 @@ The prototype combines three main capabilities.
 
 #### 1. Regime detection
 
-The workflow uses rolling model diagnostics and changepoint detection to infer when the process has shifted. The diagnostic channels include measures such as rolling model fit, residual behavior, feature-importance entropy, and feature-importance stability. These rolling diagnostics are then passed through PELT changepoint detection to identify regime boundaries.
+The workflow uses rolling model diagnostics and changepoint detection to infer when the process has shifted. The diagnostic channels include rolling model fit, residual behavior, feature-importance entropy, and feature-importance stability. These rolling diagnostics are then passed through PELT changepoint detection to identify regime boundaries.
 
 The regime-detection tuning notebook performed a grid search over:
 
@@ -65,11 +102,11 @@ Across 10 seeds, this configuration achieved:
 - changepoint location error: `4.4 ± 1.9` runs
 - detected changepoints: `4.5 ± 0.5`
 
-This suggests that the detector is useful but not perfect. The current implementation should therefore be understood as a prototype regime signal rather than a definitive regime labeler.
+This suggests that the detector is useful but imperfect. The current implementation should therefore be understood as a prototype regime signal rather than a definitive regime labeler.
 
 #### 2. Stable feature identification
 
-The prototype also includes noise-referenced feature stability selection. The goal is to distinguish features that are consistently informative across regimes from features that appear important only under specific transient conditions.
+The prototype includes noise-referenced feature stability selection. The goal is to distinguish features that are consistently informative across regimes from features that appear important only under specific transient conditions.
 
 This is important because regime-aware DoE should not simply forget all historical information. Some relationships may remain globally useful, while others may be local to a particular operational state.
 
@@ -156,20 +193,6 @@ The prototype does not yet prove that regime-aware adaptive DoE always finds a b
 
 That distinction matters. In real process-development settings, the value of an adaptive DoE workflow is not only whether it eventually finds one high-performing condition. It is also whether it keeps recommending good, informative, and context-appropriate experiments as the process changes.
 
-### What this prototype is and is not
-
-This is not a finished optimization package. It is a proof-of-concept for a workflow architecture.
-
-It is also not a claim that regime-aware adaptive DoE has no precedent. Related ideas exist in nonstationary Bayesian optimization, contextual optimization, changepoint-aware modeling, adaptive control, and dynamic optimization.
-
-The distinct contribution of this prototype is the applied synthesis:
-
-- treating real process drift as a first-class design problem
-- detecting regimes from model-behavior diagnostics
-- comparing local, global, residual, and ensemble learning policies
-- evaluating adaptive DoE under simulated hard nonstationarity
-- framing adaptive experimental design as a question of transfer, forgetting, and relearning
-
 ### Current limitations
 
 Several limitations remain.
@@ -189,122 +212,5 @@ Several limitations remain.
 5. **Regime confidence is not yet fully integrated.**  
    The next version should move beyond hard regime assignment and use soft regime confidence or predictive-validity weighting.
 
-### Next best steps
-
-The next development stage should focus less on adding complexity and more on strengthening the evaluation framework.
-
-#### 1. Add regret-to-current-regime-optimum
-
-Because the simulation has an oracle, the workflow should calculate each batch’s distance from the true optimum for the current regime. This would directly measure whether the adaptive policy is tracking the moving target.
-
-Suggested metric:
-
-regime_regret = true_current_regime_optimum - best_candidate_in_batch
-
-This should be summarized per regime and immediately after each transition.
-
-#### 2. Add transition-recovery metrics
-
-For each regime shift, measure how quickly each method recovers.
-
-Useful metrics:
-
-- best batch in first 1 batch after transition
-- best batch in first 2 batches after transition
-- best batch in first 3 batches after transition
-- time to reach 80%, 90%, or 95% of current-regime optimum
-- cumulative regret over the first N batches after transition
-
-This would better test the central hypothesis than final cumulative best.
-
-#### 3. Benchmark against simple recency baselines
-
-To show that regime-aware modeling adds value beyond “just use recent data,” add baselines such as:
-
-- sliding-window surrogate using last N runs
-- exponentially weighted surrogate
-- last-regime-only surrogate with no changepoint detection
-- rolling validation-weighted ensemble
-
-A strong next milestone would be demonstrating that inferred regime structure outperforms generic recency weighting.
-
-#### 4. Replace hard regime assignment with soft regime confidence
-
-The current regime detector has useful but imperfect accuracy. The adaptive policy should reflect that uncertainty.
-
-Possible approaches:
-
-- soft assignment to recent regimes
-- ensemble weighting by regime probability
-- weighting models by recent out-of-sample predictive error
-- decay functions that combine recency and regime compatibility
-
-#### 5. Improve local/global transfer logic
-
-The global-residual model should probably not be used as a fixed universal strategy. Instead, it should activate only when historical regimes appear compatible with the current regime.
-
-Possible compatibility measures:
-
-- cross-regime validation error
-- feature-importance similarity
-- residual distribution similarity
-- predicted optimum similarity
-- candidate-ranking agreement between local and global models
-
-#### 6. Add regime-similarity diagnostics
-
-A useful next module would estimate whether two regimes are related enough for transfer learning.
-
-Example questions:
-
-- Do the same decision variables matter?
-- Do the signs of effects change?
-- Are nonlinear terms stable or regime-specific?
-- Does a model trained in regime A predict regime B better than chance?
-- Are candidate rankings preserved across regimes?
-
-#### 7. Test on softer and messier drift
-
-The current hard-mode simulation is useful, but real processes may drift gradually or partially.
-
-Future simulations should include:
-
-- abrupt changepoints
-- gradual drift
-- recurring regimes
-- seasonal cycles
-- changing noise levels
-- hidden variables
-- delayed response
-- mixed continuous and categorical variables
-- constraints that change over time
-
-#### 8. Prepare for real process data
-
-The practical goal is a workflow that can support real R&D settings where processes are evolving while experiments are being planned.
-
-Before applying to real data, the code should be refactored into clearer modules:
-
-- `data_generation/`
-- `regime_detection/`
-- `feature_stability/`
-- `surrogate_models/`
-- `acquisition/`
-- `evaluation/`
-- `visualization/`
-
-The prototype should also include reproducible configuration files for:
-
-- regime detector settings
-- surrogate model settings
-- acquisition weights
-- batch size
-- simulation mode
-- random seeds
-- evaluation metrics
-
-### Current conclusion
-
-The prototype supports the idea that adaptive DoE under nonstationarity should not blindly pool all historical data. In the hard-regime simulation, the strongest current policy is a simple local regime-aware surrogate, which improves mean batch quality relative to both random selection and a naive global model.
-
-The next challenge is to prove that the workflow is doing more than recency filtering. The most promising direction is a soft regime-aware ensemble that combines local adaptation, global transfer, and recent predictive validity into a single adaptive recommendation policy.
+6. **The current prototype does not yet prove value beyond recency filtering.**  
+   A key next step is to compare regime-aware modeling against simpler baselines that use only recent data.
